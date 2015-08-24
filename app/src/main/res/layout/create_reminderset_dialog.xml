@@ -31,7 +31,7 @@
         android:padding="5dip"
         android:text="Title:"/>
     <EditText
-        android:id="@+id/titleEditText"
+        android:id="@+id/reminderSetTitleEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
     <TextView
@@ -41,7 +41,7 @@
         android:padding="5dip"
         android:text="Description:"/>
     <EditText
-        android:id="@+id/descriptionEditText"
+        android:id="@+id/reminderSetDescriptionEditText"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:inputType="textMultiLine" />

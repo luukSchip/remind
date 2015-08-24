@@ -63,30 +63,28 @@ public class ReminderSetAdapter extends BaseAdapter {
 
         if (reminderSet != null) {
             ((TextView) currentView.findViewById(R.id.title)).setText(reminderSet.getTitle());
-            View button = currentView.findViewById(R.id.button);
-            button.setOnClickListener(new OnClickDeleteButton(reminderSet.getId()));
         }
 
 
         return currentView;
     }
     private class OnClickDeleteButton implements View.OnClickListener {
-        int id;
+        int position;
 
-        public OnClickDeleteButton(int id) {
-            this.id = id;
+        public OnClickDeleteButton(int position) {
+            this.position = position;
         }
 
         @Override
         public void onClick(View v) {
             if(reminderSetDeleteListener != null){
-                reminderSetDeleteListener.onDeleteReminderSet(id);
+                reminderSetDeleteListener.onDeleteReminderSet(position);
             }
         }
     }
 
     public interface ReminderSetDeleteListener {
-        public void onDeleteReminderSet(int id);
+        public void onDeleteReminderSet(int position);
     }
 
     public void setReminderSetDeleteListener(ReminderSetDeleteListener reminderSetDeleteListener) {

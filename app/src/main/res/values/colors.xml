@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary_light" >#ff4ad6ff</color>
+    <color name="primary_medium" >#ff3da7cc</color>
+    <color name="primary_dark" >#ff297894</color>
+    <color name="primary_dark_extra" >#ff104c63</color>
+    <color name="support_light" >#ffff93ca</color>
+    <color name="support_medium" >#ffe63c8e</color>
+    <color name="support_dark" >#ffae0c55</color>
+    <color name="lightest" >#FFF</color>
+    <color name="darkest" >#000</color>
+    <color name="lightest_alpha" >#78ffffff</color>
+</resources>

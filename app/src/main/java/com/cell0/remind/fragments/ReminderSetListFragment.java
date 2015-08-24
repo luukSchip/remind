@@ -2,8 +2,11 @@ package com.cell0.remind.fragments;
 
 import android.app.Activity;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -31,12 +34,13 @@ import io.realm.RealmResults;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class ReminderSetListFragment extends FABFragment implements AbsListView.OnItemClickListener, ReminderSetAdapter.ReminderSetDeleteListener {
+public class ReminderSetListFragment extends Fragment implements AbsListView.OnItemClickListener{
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
     private static final String ARG_PARAM1 = "param1";
     private static final String ARG_PARAM2 = "param2";
+    public static final String FRAGMENT_INTERACTION_NEW_REMINDER_SET = "NEW_REMINDER_SET";
 
     // TODO: Rename and change types of parameters
     private String mParam1;
@@ -70,7 +74,6 @@ public class ReminderSetListFragment extends FABFragment implements AbsListView.
         }
 
         mAdapter = new ReminderSetAdapter(getActivity());
-        mAdapter.setReminderSetDeleteListener(this);
     }
 
     @Override
@@ -80,9 +83,22 @@ public class ReminderSetListFragment extends FABFragment implements AbsListView.
 
         mListView = (AbsListView) view.findViewById(android.R.id.list);
         ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            mListView.setNestedScrollingEnabled(true);
+        }*/
         updateReminderSets();
         mListView.setOnItemClickListener(this);
         return view;
+    }
+
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mListener.onFragmentInteraction("restoreFab");
+        mListener.onSetToolbarMenu(null,null, null,null);
+        mListener.onSetFabListener(new FabListener());
+        updateReminderSets();
     }
 
     @Override
@@ -122,21 +138,6 @@ public class ReminderSetListFragment extends FABFragment implements AbsListView.
         }
     }
 
-    @Override
-    public void onClickFAB() {
-        super.onClickFAB();
-        Log.d(TAG, "onClickFAB");
-        AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-        builder.setTitle("Create new Reminder Set");
-        View v = getLayoutInflater(null).inflate(R.layout.create_reminderset_dialog,null);
-        builder.setView(v);
-        builder.setCancelable(true);
-        builder.setPositiveButton("Save", new OnSaveReminderSet());
-        builder.setNegativeButton("Cancel", new OnCancelDialog());
-        builder.setOnDismissListener(new OnDismissDialog());
-        builder.show();
-    }
-
     public void updateReminderSets() {
         Realm realm = Realm.getInstance(getActivity());
 
@@ -149,27 +150,20 @@ public class ReminderSetListFragment extends FABFragment implements AbsListView.
         mListView.invalidate();
     }
 
-    /**
-     * This interface must be implemented by activities that contain this
-     * fragment to allow an interaction in this fragment to be communicated
-     * to the activity and potentially other fragments contained in that
-     * activity.
-     * <p/>
-     * See the Android Training lesson <a href=
-     * "http://developer.android.com/training/basics/fragments/communicating.html"
-     * >Communicating with Other Fragments</a> for more information.
-     */
     public interface OnFragmentInteractionListener {
-        // TODO: Update argument type and name
         public void onFragmentInteraction(String id);
         public void onClickReminderSet(int id);
+        public void onSetToolbarMenu(Integer menuResId, Integer navigationIconResId,
+                 Toolbar.OnMenuItemClickListener onMenuItemClickListener,
+                 View.OnClickListener navigationOnClickListener);
+        public void onSetFabListener(View.OnClickListener fabListener);
     }
 
     private class OnSaveReminderSet implements DialogInterface.OnClickListener {
         @Override
         public void onClick(DialogInterface dialog, int which) {
-            EditText titleEditText = (EditText) ((AlertDialog) dialog).findViewById(R.id.titleEditText);
-            EditText descriptionEditText = (EditText) ((AlertDialog) dialog).findViewById(R.id.descriptionEditText);
+            EditText titleEditText = (EditText) ((AlertDialog) dialog).findViewById(R.id.reminderSetTitleEditText);
+            EditText descriptionEditText = (EditText) ((AlertDialog) dialog).findViewById(R.id.reminderSetDescriptionEditText);
             String title = titleEditText.getText().toString();
             String description = descriptionEditText.getText().toString();
             ReminderSet reminderSet = new ReminderSet();
@@ -200,13 +194,20 @@ public class ReminderSetListFragment extends FABFragment implements AbsListView.
         }
     }
 
-    public void onDeleteReminderSet(int id){
-        Log.i(TAG,"onDeleteReminderSet " + id);
+    public void onDeleteReminderSet(int position){
+        Log.i(TAG,"onDeleteReminderSet " + position);
         Realm realm = Realm.getInstance(getActivity());
-        ReminderSet reminderSet = realm.where(ReminderSet.class).equalTo("id",id).findFirst();
+        ReminderSet reminderSet = mAdapter.getItem(position);
         realm.beginTransaction();
         reminderSet.removeFromRealm();
         realm.commitTransaction();
         updateReminderSets();
+    }
+
+    private class FabListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            mListener.onFragmentInteraction(FRAGMENT_INTERACTION_NEW_REMINDER_SET);
+        }
     }
 }

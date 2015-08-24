@@ -1,8 +1,21 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+        <item name="android:windowBackground">@color/background_material_light</item>
+        <item name="android:listViewStyle">@style/AppTheme.ListView</item>
+    </style>
+
+    <style name="AppTheme.EditText" parent="Base.V12.Widget.AppCompat.EditText"></style>
+
+    <style name="AppTheme.EditText.Light">
+        <item name="android:background">@drawable/edit_text_light_background</item>
+    </style>
+
+    <style name="AppTheme.ListView" parent="Widget.AppCompat.ListView">
+        <item name="android:background">@color/lightest</item>
+        <item name="android:divider">@drawable/list_divider</item>
+        <item name="android:footerDividersEnabled">true</item>
     </style>
 
 </resources>
