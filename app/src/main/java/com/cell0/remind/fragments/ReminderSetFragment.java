@@ -2,7 +2,6 @@ package com.cell0.remind.fragments;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
 import android.support.v4.app.Fragment;
@@ -22,8 +21,10 @@ import android.widget.EditText;
 
 import com.cell0.remind.R;
 
+import com.cell0.remind.adapters.ConditionAdapter;
 import com.cell0.remind.adapters.ReminderAdapter;
 import com.cell0.remind.interfaces.OnAppBarResizedListener;
+import com.cell0.remind.models.Condition;
 import com.cell0.remind.models.Reminder;
 import com.cell0.remind.models.ReminderSet;
 import com.cell0.remind.views.layoutmanager.LinearLayoutManager;
@@ -41,9 +42,9 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
     private OnFragmentInteractionListener mListener;
 
     private ReminderSet reminderSet;
-    private RecyclerView recyclerView;
-    private ReminderAdapter mAdapter;
-    private RecyclerView.LayoutManager layoutManager;
+    private ReminderSet reminderSetBackup;
+    private RecyclerView reminderRecyclerView;
+    private ReminderAdapter reminderAdapter;
     private String TAG = "ReminderSetFragment";
     private EditText reminderSetTitleEditText;
     private EditText reminderSetDescriptionEditText;
@@ -65,7 +66,7 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mAdapter = new ReminderAdapter();
+        reminderAdapter = new ReminderAdapter();
         if (getArguments() != null) {
             reminderSetId = getArguments().getInt(ARG_REMINDER_SET_ID);
         }
@@ -77,32 +78,25 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
                              Bundle savedInstanceState) {
 
         View view = inflater.inflate(R.layout.fragment_reminderset, container, false);
-        recyclerView = (RecyclerView) view.findViewById(android.R.id.list);
-        layoutManager = new LinearLayoutManager(getActivity());
-        recyclerView.setAdapter(mAdapter);
-        recyclerView.setLayoutManager(layoutManager);
 
+        reminderRecyclerView = (RecyclerView) view.findViewById(R.id.reminder_list);
+        reminderRecyclerView.setAdapter(reminderAdapter);
+        reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-
-       /* if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            recyclerView.setNestedScrollingEnabled(true);
-        }
-        reminderSetTitleEditText = (EditText) view.findViewById(R.id.reminderSetTitleEditText);
+        View appBarView = View.inflate(getActivity(),R.layout.reminderset_appbar,null);
+        reminderSetTitleEditText = (EditText) appBarView.findViewById(R.id.reminderSetTitleEditText);
         reminderSetDescriptionEditText =
-                (EditText) view.findViewById(R.id.reminderSetDescriptionEditText);
-        */
+                (EditText) appBarView.findViewById(R.id.reminderSetDescriptionEditText);
+        mListener.addViewToAppBar(appBarView);
+
         if(reminderSetId != null) {
             setReminderSetById(reminderSetId);
         }else{
             createNewReminderSet();
         }
 
-        //recyclerView.setOnItemClickListener(this);
-        /*reminderSetTitleEditText.addTextChangedListener(new TitleWatcher());
-        reminderSetDescriptionEditText.addTextChangedListener(new DescriptionWatcher());*/
-
-//        mListener.setAppBarResizedListener(this);
-        mListener.addViewToAppBar(R.layout.reminderset_appbar);
+        reminderSetTitleEditText.addTextChangedListener(new TitleWatcher());
+        reminderSetDescriptionEditText.addTextChangedListener(new DescriptionWatcher());
 
         return view;
     }
@@ -152,6 +146,7 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
     public void setReminderSetById(int id) {
         Realm realm = Realm.getInstance(getActivity());
         reminderSet = realm.where(ReminderSet.class).equalTo("id",id).findFirst();
+        reminderSetBackup = new ReminderSet(reminderSet);
 
         if(reminderSet != null){
             if(reminderSetTitleEditText != null)
@@ -167,10 +162,10 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
             Realm realm = Realm.getInstance(getActivity());
             RealmResults<Reminder> reminders = realm.where(Reminder.class)
                     .equalTo("reminderSet.id", reminderSet.getId()).findAllSorted("id");
-            mAdapter.setData(reminders);
-            mAdapter.setData(reminders);
-            mAdapter.notifyDataSetChanged();
-            recyclerView.invalidate();
+            reminderAdapter.setData(reminders);
+            reminderAdapter.setData(reminders);
+            reminderAdapter.notifyDataSetChanged();
+            reminderRecyclerView.invalidate();
         }
     }
 
@@ -187,7 +182,6 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
         public void onSetFabListener(View.OnClickListener fabListener);
         public void addViewToAppBar(View v);
         public void addViewToAppBar(int resId);
-        public void setAppBarResizedListener(OnAppBarResizedListener onAppBarResizedListener);
     }
 
     private void saveReminderSet(){
@@ -301,8 +295,49 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
             Log.d(TAG,"onMenuItemClick");
             switch (item.getItemId()){
                 case R.id.action_cancel:
-                    Log.d(TAG,"cancel");
+                    AlertDialog.Builder cancelBuilder = new AlertDialog.Builder(getActivity());
+                    cancelBuilder.setMessage("Discard changes?");
+                    cancelBuilder.setCancelable(true);
+                    cancelBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    cancelBuilder.setPositiveButton("Discard", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            if(reminderSetBackup == null){
+                                removeReminderSet();
+                            }else{
+                                reminderSet = reminderSetBackup;
+                                saveReminderSet();
+                            }
+                            dialog.dismiss();
+                            getActivity().onBackPressed();
+                        }
+                    });
+                    cancelBuilder.show();
                     break;
+                case R.id.action_remove:
+                    AlertDialog.Builder removeBuilder = new AlertDialog.Builder(getActivity());
+                    removeBuilder.setMessage("You are about to remove this reminderSet");
+                    removeBuilder.setCancelable(true);
+                    removeBuilder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.dismiss();
+                        }
+                    });
+                    removeBuilder.setPositiveButton("Remove", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            removeReminderSet();
+                            dialog.dismiss();
+                            getActivity().onBackPressed();
+                        }
+                    });
+                    removeBuilder.show();
             }
             return false;
         }

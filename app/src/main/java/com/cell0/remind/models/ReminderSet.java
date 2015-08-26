@@ -12,6 +12,16 @@ public class ReminderSet extends RealmObject {
     private String title;
     private String description;
 
+    public ReminderSet(ReminderSet reminderSet) {
+        this.id = reminderSet.getId();
+        this.title = reminderSet.getTitle();
+        this.description = reminderSet.getDescription();
+    }
+
+    public ReminderSet() {
+
+    }
+
     public String getDescription() {
         return description;
     }

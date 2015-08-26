@@ -2,10 +2,10 @@ package com.cell0.remind.fragments;
 
 import android.app.Activity;
 import android.content.DialogInterface;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -22,6 +22,7 @@ import com.cell0.remind.R;
 import com.cell0.remind.adapters.ReminderSetAdapter;
 import com.cell0.remind.models.ReminderSet;
 
+import com.cell0.remind.views.layoutmanager.LinearLayoutManager;
 import io.realm.Realm;
 import io.realm.RealmResults;
 
@@ -34,7 +35,7 @@ import io.realm.RealmResults;
  * Activities containing this fragment MUST implement the {@link OnFragmentInteractionListener}
  * interface.
  */
-public class ReminderSetListFragment extends Fragment implements AbsListView.OnItemClickListener{
+public class ReminderSetListFragment extends Fragment{
 
     // TODO: Rename parameter arguments, choose names that match
     // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -47,7 +48,7 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
     private String mParam2;
 
     private OnFragmentInteractionListener mListener;
-    private AbsListView mListView;
+    private RecyclerView recyclerView;
     private ReminderSetAdapter mAdapter;
     private String TAG = "RSetListFragment";
 
@@ -73,7 +74,8 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
             mParam2 = getArguments().getString(ARG_PARAM2);
         }
 
-        mAdapter = new ReminderSetAdapter(getActivity());
+        mAdapter = new ReminderSetAdapter();
+        mAdapter.setOnItemclickListener(new ReminderSetListFragment.OnItemClickListener());
     }
 
     @Override
@@ -81,13 +83,18 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_remindersetlist, container, false);
 
-        mListView = (AbsListView) view.findViewById(android.R.id.list);
-        ((AdapterView<ListAdapter>) mListView).setAdapter(mAdapter);
+        recyclerView = (RecyclerView) view.findViewById(android.R.id.list);
+        RecyclerView.LayoutManager layoutManager = new LinearLayoutManager(getActivity());
+        recyclerView.setAdapter(mAdapter);
+        recyclerView.setLayoutManager(layoutManager);
         /*if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            mListView.setNestedScrollingEnabled(true);
+            recyclerView.setNestedScrollingEnabled(true);
         }*/
         updateReminderSets();
-        mListView.setOnItemClickListener(this);
+        //recyclerView.setOnItemClickListener(this);
+
+        mListener.addViewToAppBar(null);
+
         return view;
     }
 
@@ -118,25 +125,25 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
         mListener = null;
     }
 
-    @Override
+    /*@Override
     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
         if (null != mListener) {
             mListener.onClickReminderSet(mAdapter.getItem(position).getId());
         }
-    }
+    }*/
 
     /**
      * The default content for this Fragment has a TextView that is shown when
      * the list is empty. If you would like to change the text, call this method
      * to supply the text it should use.
      */
-    public void setEmptyText(CharSequence emptyText) {
-        View emptyView = mListView.getEmptyView();
+    /*public void setEmptyText(CharSequence emptyText) {
+        View emptyView = recyclerView.getEmptyView();
 
         if (emptyView instanceof TextView) {
             ((TextView) emptyView).setText(emptyText);
         }
-    }
+    }*/
 
     public void updateReminderSets() {
         Realm realm = Realm.getInstance(getActivity());
@@ -147,7 +154,7 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
         // Put these items in the Adapter
         mAdapter.setData(reminderSets);
         mAdapter.notifyDataSetChanged();
-        mListView.invalidate();
+        recyclerView.invalidate();
     }
 
     public interface OnFragmentInteractionListener {
@@ -157,6 +164,8 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
                  Toolbar.OnMenuItemClickListener onMenuItemClickListener,
                  View.OnClickListener navigationOnClickListener);
         public void onSetFabListener(View.OnClickListener fabListener);
+        public void addViewToAppBar(View v);
+        public void addViewToAppBar(int resId);
     }
 
     private class OnSaveReminderSet implements DialogInterface.OnClickListener {
@@ -208,6 +217,14 @@ public class ReminderSetListFragment extends Fragment implements AbsListView.OnI
         @Override
         public void onClick(View v) {
             mListener.onFragmentInteraction(FRAGMENT_INTERACTION_NEW_REMINDER_SET);
+        }
+    }
+
+    private class OnItemClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            int position = (int) v.getTag();
+            mListener.onClickReminderSet(mAdapter.getItem(position).getId());
         }
     }
 }

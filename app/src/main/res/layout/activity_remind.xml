@@ -17,6 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@color/primary_dark_extra"
+            android:animateLayoutChanges="true"
             android:theme="@style/ThemeOverlay.AppCompat.Dark.ActionBar">
 
             <android.support.v7.widget.Toolbar
@@ -38,6 +39,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:layout_gravity="fill_vertical"
+                android:background="@color/background_material_light"
                 app:layout_behavior="@string/appbar_scrolling_view_behavior"
                 android:id="@+id/fragment_container"/>
         <!--<fragment android:name="com.cell0.remind.fragments.ReminderSetListFragment"

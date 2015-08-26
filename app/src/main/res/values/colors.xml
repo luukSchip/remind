@@ -10,4 +10,5 @@
     <color name="lightest" >#FFF</color>
     <color name="darkest" >#000</color>
     <color name="lightest_alpha" >#78ffffff</color>
+    <color name="gray_medium">#888</color>
 </resources>

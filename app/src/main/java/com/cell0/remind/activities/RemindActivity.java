@@ -102,8 +102,10 @@ public class RemindActivity extends ActionBarActivity
     @Override
     public void addViewToAppBar(View v) {
         removeAddedViewFromAppBar();
-        v.setTag("addedToAppBar");
-        appBar.addView(v);
+        if(v != null){
+            v.setTag("addedToAppBar");
+            appBar.addView(v);
+        }
 /*
         //adjust fragmentContainer top margin
         appBar.measure(0,0);
@@ -128,11 +130,6 @@ public class RemindActivity extends ActionBarActivity
     public void addViewToAppBar(int resId) {
         View v = View.inflate(this,resId,null);
         addViewToAppBar(v);
-    }
-
-    @Override
-    public void setAppBarResizedListener(OnAppBarResizedListener onAppBarResizedListener) {
-        this.onAppBarResizedListener = onAppBarResizedListener;
     }
 
     @Override
