@@ -16,6 +16,6 @@
     For more on layout aliases, see:
     http://developer.android.com/training/multiscreen/screensizes.html#TaskUseAliasFilters
     -->
-    <item name="fragment_reminderset" type="layout">@layout/fragment_reminderset_list</item>
+    <item name="fragment_reminderset" type="layout">@layout/reminder_list</item>
 
 </resources>

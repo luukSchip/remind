@@ -1,0 +1,57 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:rsb="http://schemas.android.com/apk/res-auto"
+    tools:context="com.cell0.remind.fragments.TimeConditionFragment"
+    android:theme="@android:style/Widget.DeviceDefault.Light">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_marginTop="16dp">
+
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Frequency"/>
+
+        <SeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:max="100"
+            android:id="@+id/frequencySeekBar"
+            android:layout_marginLeft="4dp"
+            android:layout_marginRight="4dp"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Time range:"/>
+
+        <org.florescu.android.rangeseekbar.RangeSeekBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/timeRangeBar"
+            rsb:absoluteMaxValue="24"
+            rsb:absoluteMinValue="0"
+            rsb:alwaysActive="true"
+            rsb:showLabels="false"
+            rsb:valuesAboveThumbs="false"
+            rsb:textAboveThumbsColor="@color/darkest"
+            android:layout_marginBottom="16dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Large Text"
+            android:id="@+id/timeText"
+            android:gravity="center_horizontal"
+            android:textColor="@color/primary_medium" />
+
+    </LinearLayout>
+
+</FrameLayout>

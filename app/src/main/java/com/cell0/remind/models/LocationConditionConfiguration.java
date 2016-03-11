@@ -9,10 +9,10 @@ import io.realm.annotations.PrimaryKey;
 public class LocationConditionConfiguration extends RealmObject {
     @PrimaryKey
     private int id;
+    private Condition condition;
     private long latitude;
     private long longitue;
     private int radius;
-    private Condition condition;
 
     public Condition getCondition() {
         return condition;

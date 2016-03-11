@@ -11,9 +11,11 @@ import io.realm.annotations.PrimaryKey;
 public class TimeConditionConfiguration extends RealmObject {
     @PrimaryKey
     private int id;
+    private Condition condition;
     private Date startTime;
     private Date endTime;
-    private Condition condition;
+    private int frequency;
+
 
     public Condition getCondition() {
         return condition;
@@ -21,14 +23,6 @@ public class TimeConditionConfiguration extends RealmObject {
 
     public void setCondition(Condition condition) {
         this.condition = condition;
-    }
-
-    public Date getEndTime() {
-        return endTime;
-    }
-
-    public void setEndTime(Date endTime) {
-        this.endTime = endTime;
     }
 
     public int getId() {
@@ -39,11 +33,26 @@ public class TimeConditionConfiguration extends RealmObject {
         this.id = id;
     }
 
+    public Date getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(Date endTime) {
+        this.endTime = endTime;
+    }
+
     public Date getStartTime() {
         return startTime;
     }
 
     public void setStartTime(Date startTime) {
         this.startTime = startTime;
+    }
+    public int getFrequency() {
+        return frequency;
+    }
+
+    public void setFrequency(int frequency) {
+        this.frequency = frequency;
     }
 }

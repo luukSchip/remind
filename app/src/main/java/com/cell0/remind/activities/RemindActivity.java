@@ -1,27 +1,34 @@
 package com.cell0.remind.activities;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.graphics.drawable.ColorDrawable;
-import android.os.Build;
 import android.os.Bundle;
 import android.support.design.widget.AppBarLayout;
-import android.support.design.widget.CoordinatorLayout;
+import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.ActionBarActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.MenuItem;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 
 import com.cell0.remind.R;
+import com.cell0.remind.fragments.ConditionFragment;
+import com.cell0.remind.fragments.ReminderFragment;
 import com.cell0.remind.fragments.ReminderSetFragment;
 import com.cell0.remind.fragments.ReminderSetListFragment;
 import com.cell0.remind.interfaces.OnAppBarResizedListener;
 import com.cell0.remind.views.CustomFAB;
 
+import java.util.List;
+
 
 public class RemindActivity extends ActionBarActivity
         implements ReminderSetListFragment.OnFragmentInteractionListener,
-        ReminderSetFragment.OnFragmentInteractionListener {
+        ReminderFragment.OnFragmentInteractionListener,
+        ReminderSetFragment.OnFragmentInteractionListener,
+        ConditionFragment.OnFragmentInteractionListener{
 
     private static final String TAG = "RemindActivity";
     private static final String TAG_FAB_FRAGMENT = "FAB_FRAGMENT";
@@ -61,6 +68,9 @@ public class RemindActivity extends ActionBarActivity
         switch(id){
             case "restoreFab":
                 restoreFab();
+                break;
+            case "hideFab":
+                hideFab();
                 break;
             case "back":
                 onBackPressed();
@@ -128,7 +138,7 @@ public class RemindActivity extends ActionBarActivity
 
     @Override
     public void addViewToAppBar(int resId) {
-        View v = View.inflate(this,resId,null);
+        View v = View.inflate(this, resId, null);
         addViewToAppBar(v);
     }
 
@@ -151,5 +161,31 @@ public class RemindActivity extends ActionBarActivity
         }, 500);
     }
 
+    private void hideFab(){
+        fab.hide();
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        List<Fragment> frags = getSupportFragmentManager().getFragments();
+        if (frags != null) {
+            for (Fragment f : frags) {
+                if (f != null)
+                    handleResult(f, requestCode, resultCode, data);
+            }
+        }
+    }
+
+    private void handleResult(Fragment frag, int requestCode, int resultCode, Intent data) {
+        frag.onActivityResult(requestCode, resultCode, data);
+        List<Fragment> frags = frag.getChildFragmentManager().getFragments();
+        if (frags != null) {
+            for (Fragment f : frags) {
+                if (f != null)
+                    handleResult(f, requestCode, resultCode, data);
+            }
+        }
+    }
 
 }

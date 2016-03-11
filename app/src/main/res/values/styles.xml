@@ -18,4 +18,8 @@
         <item name="android:footerDividersEnabled">true</item>
     </style>
 
+    <style name="ClockTheme" parent="android:Theme.Holo">
+
+    </style>
+
 </resources>

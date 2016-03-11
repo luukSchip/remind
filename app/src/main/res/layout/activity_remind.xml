@@ -6,11 +6,6 @@
     android:clipToPadding="false"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
-<!--
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/container">-->
 
         <android.support.design.widget.AppBarLayout
             android:id="@+id/appbar"
@@ -26,12 +21,6 @@
                 android:id="@+id/toolbar"
                 android:title="Remind"
                 app:layout_scrollFlags="scroll|enterAlways"/>
-
-            <!--<android.support.design.widget.TabLayout
-                android:layout_height="wrap_content"
-                android:layout_width="match_parent"
-                android:id="@+id/tabLayout"
-                app:layout_scrollFlags="scroll|enterAlways"/>-->
         </android.support.design.widget.AppBarLayout>
 
     <!--app:layout_behavior="com.cell0.remind.views.behaviors.FixedScrollingViewBehavior"-->

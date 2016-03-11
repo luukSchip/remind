@@ -3,10 +3,10 @@ package com.cell0.remind.fragments;
 import android.app.Activity;
 import android.content.DialogInterface;
 import android.os.Bundle;
-import android.support.design.widget.AppBarLayout;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -15,39 +15,29 @@ import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AbsListView;
-import android.widget.AdapterView;
 import android.widget.EditText;
 
 import com.cell0.remind.R;
-
-import com.cell0.remind.adapters.ConditionAdapter;
-import com.cell0.remind.adapters.ReminderAdapter;
-import com.cell0.remind.interfaces.OnAppBarResizedListener;
-import com.cell0.remind.models.Condition;
-import com.cell0.remind.models.Reminder;
+import com.cell0.remind.adapters.ReminderSetFragmentPagerAdapter;
 import com.cell0.remind.models.ReminderSet;
-import com.cell0.remind.views.layoutmanager.LinearLayoutManager;
 
 import io.realm.Realm;
-import io.realm.RealmResults;
 
-public class ReminderSetFragment extends Fragment implements AbsListView.OnItemClickListener,
-        AlertDialog.OnCancelListener, AlertDialog.OnDismissListener, AlertDialog.OnClickListener, OnAppBarResizedListener {
-
+public class ReminderSetFragment extends Fragment implements ViewPager.OnPageChangeListener {
     private static final String ARG_REMINDER_SET_ID = "reminderSetId";
-
-    private Integer reminderSetId;
-
-    private OnFragmentInteractionListener mListener;
+    private static final String TAG = "ReminderSetFragment";
 
     private ReminderSet reminderSet;
     private ReminderSet reminderSetBackup;
-    private RecyclerView reminderRecyclerView;
-    private ReminderAdapter reminderAdapter;
-    private String TAG = "ReminderSetFragment";
+
+    private Integer reminderSetId;
+
+    private ViewPager pager;
+    private TabLayout tabLayout;
     private EditText reminderSetTitleEditText;
     private EditText reminderSetDescriptionEditText;
+
+    private OnFragmentInteractionListener mListener;
 
     public static ReminderSetFragment newInstance(Integer reminderSetId) {
         ReminderSetFragment fragment = new ReminderSetFragment();
@@ -66,22 +56,18 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        reminderAdapter = new ReminderAdapter();
         if (getArguments() != null) {
             reminderSetId = getArguments().getInt(ARG_REMINDER_SET_ID);
         }
-
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        View v = inflater.inflate(R.layout.fragment_reminder_set, container, false);
 
-        View view = inflater.inflate(R.layout.fragment_reminderset, container, false);
-
-        reminderRecyclerView = (RecyclerView) view.findViewById(R.id.reminder_list);
-        reminderRecyclerView.setAdapter(reminderAdapter);
-        reminderRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        pager = (ViewPager) v.findViewById(R.id.pager);
+        tabLayout = (TabLayout) v.findViewById(R.id.tabLayout);
 
         View appBarView = View.inflate(getActivity(),R.layout.reminderset_appbar,null);
         reminderSetTitleEditText = (EditText) appBarView.findViewById(R.id.reminderSetTitleEditText);
@@ -95,19 +81,17 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
             createNewReminderSet();
         }
 
+        pager.setAdapter(
+                new ReminderSetFragmentPagerAdapter(getChildFragmentManager(), reminderSetId));
+        pager.addOnPageChangeListener(this);
+        pager.addOnPageChangeListener(new TabLayout.TabLayoutOnPageChangeListener(tabLayout));
+
+        tabLayout.setupWithViewPager(pager);
+
         reminderSetTitleEditText.addTextChangedListener(new TitleWatcher());
         reminderSetDescriptionEditText.addTextChangedListener(new DescriptionWatcher());
 
-        return view;
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        mListener.onFragmentInteraction("restoreFab");
-        mListener.onSetFabListener(new FabListener());
-        mListener.onSetToolbarMenu(R.menu.menu_reminderset, R.drawable.ic_action_navigation_check,
-                new OnMenuItenClickListener(), new OnNavigationClickListener());
+        return v;
     }
 
     @Override
@@ -127,19 +111,55 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
         mListener = null;
     }
 
-    private void createNewReminderSet() {
+    @Override
+    public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
 
-        reminderSet = new ReminderSet();
-        Realm realm = Realm.getInstance(getActivity());
-        int nextID = (int) (realm.where(ReminderSet.class).maximumInt("id") + 1);
-        reminderSet.setId(nextID);
-        saveReminderSet();
     }
 
     @Override
-    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        if (null != mListener) {
+    public void onPageSelected(int position) {
 
+    }
+
+    @Override
+    public void onPageScrollStateChanged(int state) {
+        switch (state){
+            case ViewPager.SCROLL_STATE_DRAGGING:
+                mListener.onFragmentInteraction("hideFab");
+                break;
+            case ViewPager.SCROLL_STATE_IDLE:
+                break;
+            case ViewPager.SCROLL_STATE_SETTLING:
+                mListener.onFragmentInteraction("restoreFab");
+                break;
+        }
+    }
+
+    public interface OnFragmentInteractionListener {
+        public void onFragmentInteraction(String id);
+        public void onSetToolbarMenu(Integer menuResId, Integer navigationIconResId,
+                                     Toolbar.OnMenuItemClickListener onMenuItemClickListener,
+                                     View.OnClickListener navigationOnClickListener);
+        public void onSetFabListener(View.OnClickListener fabListener);
+        public void addViewToAppBar(View v);
+        public void addViewToAppBar(int resId);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        mListener.onSetToolbarMenu(R.menu.menu_reminderset, R.drawable.ic_action_navigation_check,
+                new OnMenuItemClickListener(), new OnNavigationClickListener());
+    }
+
+
+
+    private class OnNavigationClickListener implements View.OnClickListener {
+        @Override
+        public void onClick(View v) {
+            saveReminderSet();
+            //TODO: replace getActivity with something that won't become null
+            getActivity().onBackPressed();
         }
     }
 
@@ -153,35 +173,21 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
                 reminderSetTitleEditText.setText(reminderSet.getTitle());
             if(reminderSetDescriptionEditText != null)
                 reminderSetDescriptionEditText.setText(reminderSet.getDescription());
-            updateReminders();
+            updateData();
         }
     }
 
-    private void updateReminders() {
-        if(reminderSet != null){
-            Realm realm = Realm.getInstance(getActivity());
-            RealmResults<Reminder> reminders = realm.where(Reminder.class)
-                    .equalTo("reminderSet.id", reminderSet.getId()).findAllSorted("id");
-            reminderAdapter.setData(reminders);
-            reminderAdapter.setData(reminders);
-            reminderAdapter.notifyDataSetChanged();
-            reminderRecyclerView.invalidate();
-        }
+    private void updateData() {
+        //TODO: iets
     }
 
-    @Override
-    public void onAppBarResized(AppBarLayout appBar) {
-
-    }
-
-    public interface OnFragmentInteractionListener {
-        public void onFragmentInteraction(String id);
-        public void onSetToolbarMenu(Integer menuResId, Integer navigationIconResId,
-             Toolbar.OnMenuItemClickListener onMenuItemClickListener,
-             View.OnClickListener navigationOnClickListener);
-        public void onSetFabListener(View.OnClickListener fabListener);
-        public void addViewToAppBar(View v);
-        public void addViewToAppBar(int resId);
+    private void createNewReminderSet() {
+        reminderSet = new ReminderSet();
+        Realm realm = Realm.getInstance(getActivity());
+        int nextID = (int) (realm.where(ReminderSet.class).maximumInt("id") + 1);
+        reminderSet.setId(nextID);
+        reminderSetId = nextID;
+        saveReminderSet();
     }
 
     private void saveReminderSet(){
@@ -202,35 +208,6 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
             realm.commitTransaction();
         }
     }
-
-    @Override
-    public void onDismiss(DialogInterface dialog) {
-        mListener.onFragmentInteraction("restoreFab");
-    }
-
-    //on save reminder
-    @Override
-    public void onClick(DialogInterface dialog, int which) {
-        EditText edittext = (EditText) ((AlertDialog) dialog).findViewById(R.id.editText);
-        String text = edittext.getText().toString();
-        Reminder reminder = new Reminder();
-        reminder.setText(text);
-        Realm realm = Realm.getInstance(getActivity());
-        int nextID = (int) (realm.where(Reminder.class).maximumInt("id") + 1);
-        reminder.setId(nextID);
-        reminder.setReminderSet(reminderSet);
-        realm.beginTransaction();
-        realm.copyToRealmOrUpdate(reminder);
-        realm.commitTransaction();
-        updateReminders();
-        dialog.dismiss();
-    }
-
-    @Override
-    public void onCancel(DialogInterface dialog) {
-        dialog.dismiss();
-    }
-
 
     private class TitleWatcher implements TextWatcher {
         @Override
@@ -280,16 +257,7 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
         }
     }
 
-    private class OnNavigationClickListener implements View.OnClickListener {
-        @Override
-        public void onClick(View v) {
-            saveReminderSet();
-            //TODO: replace getActivity with something that won't become null
-            getActivity().onBackPressed();
-        }
-    }
-
-    private class OnMenuItenClickListener implements Toolbar.OnMenuItemClickListener {
+    private class OnMenuItemClickListener implements Toolbar.OnMenuItemClickListener {
         @Override
         public boolean onMenuItemClick(MenuItem item) {
             Log.d(TAG,"onMenuItemClick");
@@ -340,22 +308,6 @@ public class ReminderSetFragment extends Fragment implements AbsListView.OnItemC
                     removeBuilder.show();
             }
             return false;
-        }
-    }
-
-    private class FabListener implements View.OnClickListener{
-        @Override
-        public void onClick(View v) {
-            Log.d(TAG, "onClickFAB");
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
-            builder.setTitle("Create new Reminder");
-            View view = getLayoutInflater(null).inflate(R.layout.create_reminder_dialog,null);
-            builder.setView(view);
-            builder.setCancelable(true);
-            builder.setPositiveButton("Save", ReminderSetFragment.this);
-            builder.setNegativeButton("Cancel", ReminderSetFragment.this);
-            builder.setOnDismissListener(ReminderSetFragment.this);
-            builder.show();
         }
     }
 }
